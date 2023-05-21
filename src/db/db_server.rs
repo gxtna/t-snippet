@@ -16,11 +16,11 @@ pub async fn inset_snippet(snippet_info: SnippetInfo) -> bool {
     let res = sqlx::query(
         "insert into snippet (snippet_id,user_id,tags,description,content,create_time,update_time) values($1,$2,$3,$4,$5,$6,$7)",
     )
-    .bind(snippet_info.snippet_id())
-    .bind(snippet_info.user_id())
-    .bind(snippet_info.tags())
-    .bind(snippet_info.description())
-    .bind(snippet_info.content())
+    .bind(snippet_info.snippet_id)
+    .bind(snippet_info.user_id)
+    .bind(snippet_info.tags)
+    .bind(snippet_info.description)
+    .bind(snippet_info.content)
     .bind(time)
     .bind(time)
     .execute(&mut conn)
@@ -55,11 +55,11 @@ pub async fn update_sinppet(snippet_info: SnippetInfo) -> bool {
     let res = sqlx::query(
         "update snippet_info set tags = $1 ,description=$2,content=$3 ,update_time = $4 where snippet_id = $5",
     )
-    .bind(snippet_info.tags())
-    .bind(snippet_info.description())
-    .bind(snippet_info.content())
+    .bind(snippet_info.tags)
+    .bind(snippet_info.description)
+    .bind(snippet_info.content)
     .bind(time)
-    .bind(snippet_info.snippet_id())
+    .bind(snippet_info.snippet_id)
     .execute(&mut conn)
     .await
     .unwrap();

@@ -3,13 +3,13 @@ use chrono::NaiveDateTime;
 
 #[derive(Serialize, Deserialize, Default, Debug, sqlx::FromRow)]
 pub struct SnippetInfo {
-    snippet_id: String,
-    user_id: String,
-    tags: String,
-    description: String,
-    content: String,
-    create_time: NaiveDateTime,
-    update_time: NaiveDateTime,
+    pub snippet_id: String,
+    pub user_id: String,
+    pub tags: String,
+    pub description: String,
+    pub content: String,
+    pub create_time: NaiveDateTime,
+    pub update_time: NaiveDateTime,
 }
 
 impl SnippetInfo{
@@ -29,4 +29,26 @@ impl SnippetInfo{
     pub fn content(&self) -> String{
         self.content.to_string()
     }
+}
+
+pub struct UserInfo{
+    pub user_id: String,
+    pub nickname: String,
+    pub password: String,
+    pub email: String,
+    pub description: String,
+    pub token: String,
+    pub token_expired: NaiveDateTime,
+    pub create_time: NaiveDateTime,
+    pub update_time: NaiveDateTime,
+}
+
+pub struct TagInfo{
+    pub tag_id: i32,
+    pub name: String,
+}
+
+pub struct OhterLoginInfo{
+    pub user_id: String,
+    pub login_type: String,
 }
