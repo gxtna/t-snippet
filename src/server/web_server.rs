@@ -14,7 +14,6 @@ pub async fn web_server_route() {
     let app = Router::new()
         .route("/", get(index))
         .route("/github_login", get(github_login))
-        .route("/callback", get(github_callback))
         .layer(cors);
     Server::bind(&"127.0.0.1:8080".parse().unwrap())
         .serve(app.into_make_service())
@@ -36,11 +35,24 @@ async fn index() -> String {
     let res = db_server::update_sinppet(sni).await;
     return "http://127.0.0.1:8080".to_string();
 }
-async fn github_login(Query(access_token): Query<GithubAccessToken>)-> Json<GitHubUserInfo> {
-
+async fn github_login(Query(code): Query<GithubInfo>) ->Json<GitHubUserInfo> {
+    let mut url = String::new();
+    url.push_str("https://github.com/login/oauth/access_token?client_id=cfc1410aa53dc97243dd&client_secret=54d59c9d64d3c672dde8bd9a2f410544c6063d70&code=");
+    url.push_str(&code.code);
+    let res = Client::new()
+        .get(url)
+        .header("Accept", "application/json")
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    println!("{:?}", res);
+    let access: GithubAccessToken = serde_json::from_str(&res).unwrap();
     let mut token = String::new();
     token.push_str("Bearer ");
-    token.push_str(&access_token.access_token);
+    token.push_str(&access.access_token);
     let user = Client::new()
         .get("https://api.github.com/user")
         .header("accept", "application/vnd.github+json")
@@ -54,22 +66,6 @@ async fn github_login(Query(access_token): Query<GithubAccessToken>)-> Json<GitH
         .unwrap();
     let user_info: GitHubUserInfo = serde_json::from_str(&user).unwrap();
     Json(user_info)
-}
-async fn github_callback(Query(code): Query<GithubInfo>) ->String {
-    let mut url = String::new();
-    url.push_str("https://github.com/login/oauth/access_token?client_id=cfc1410aa53dc97243dd&client_secret=54d59c9d64d3c672dde8bd9a2f410544c6063d70&code=");
-    url.push_str(&code.code);
-    let res = Client::new()
-        .get(url)
-        .header("Accept", "application/json")
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-    let access: GithubAccessToken = serde_json::from_str(&res).unwrap();
-    access.access_token
 }
 
 #[derive(Debug, Deserialize, Serialize)]
