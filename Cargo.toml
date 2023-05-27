@@ -21,4 +21,5 @@ sqlx = { version = "0.6.2", features = [
 deadpool-postgres = "0.10.3"
 postgres = "0.19.4"
 chrono = { version = "0.4.23", features = ["serde"] }
-reqwest="0.11.13"
+reqwest = "0.11.13"
+nanoid = "0.4.0"

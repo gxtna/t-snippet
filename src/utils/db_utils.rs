@@ -1,5 +1,4 @@
-
-use sqlx::{postgres::PgConnection, PgPool, Postgres};
+use sqlx::{postgres::PgConnection, PgPool};
 
 async fn create_connection_pool() -> PgConnection {
     // TODO 如果有数据库其他配置需要修改

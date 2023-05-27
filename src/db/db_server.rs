@@ -14,10 +14,11 @@ pub async fn inset_snippet(snippet_info: SnippetInfo) -> bool {
     let time = time::get_local_time();
     let mut conn = create_connection_pool().await;
     let res = sqlx::query(
-        "insert into snippet (snippet_id,user_id,tags,description,content,create_time,update_time) values($1,$2,$3,$4,$5,$6,$7)",
+        "insert into snippet_info (snippet_id,user_id,title,tags,description,content,create_time,update_time) values($1,$2,$3,$4,$5,$6,$7,$8)",
     )
     .bind(snippet_info.snippet_id)
     .bind(snippet_info.user_id)
+    .bind(snippet_info.title)
     .bind(snippet_info.tags)
     .bind(snippet_info.description)
     .bind(snippet_info.content)
@@ -41,7 +42,7 @@ pub async fn select_snippet_list() -> Vec<SnippetInfo> {
 pub async fn get_sinppet(snippet_id: String) -> SnippetInfo {
     let mut conn = create_connection_pool().await;
     let res =
-        sqlx::query_as::<Postgres, SnippetInfo>("select * form snippet_info where snippet_id = $1")
+        sqlx::query_as::<Postgres, SnippetInfo>("select * from snippet_info where snippet_id = $1")
             .bind(snippet_id)
             .fetch_one(&mut conn)
             .await
