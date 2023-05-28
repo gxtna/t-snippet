@@ -16,14 +16,19 @@ pub struct SnippetInfo {
 
 impl SnippetInfo {
     pub fn new(
+        snippet_id: String,
         user_id: String,
         title: String,
         tags: String,
         description: String,
         content: String,
     ) -> Self {
+        let snippet_id = match snippet_id.len() > 0 {
+            true => snippet_id,
+            false => nanoid::nano_id(),
+        };
         Self {
-            snippet_id: nanoid::nano_id(),
+            snippet_id,
             user_id,
             title,
             tags,
@@ -33,39 +38,41 @@ impl SnippetInfo {
             update_time: time::get_local_time(),
         }
     }
-
-    pub fn snippet_id(&self) -> String {
-        self.snippet_id.to_string()
-    }
-    pub fn user_id(&self) -> String {
-        self.user_id.to_string()
-    }
-    pub fn tags(&self) -> String {
-        self.tags.to_string()
-    }
-    pub fn description(&self) -> String {
-        self.description.to_string()
-    }
-    pub fn content(&self) -> String {
-        self.content.to_string()
-    }
 }
 
+#[derive(Serialize, Deserialize, Default, Debug, sqlx::FromRow,Clone)]
 pub struct UserInfo {
     pub user_id: String,
-    pub nickname: String,
+    pub nick_name: String,
+    pub avatar_url: String,
+    pub account: String,
     pub password: String,
+    pub solt: String,
     pub email: String,
     pub description: String,
-    pub token: String,
-    pub token_expired: NaiveDateTime,
     pub create_time: NaiveDateTime,
     pub update_time: NaiveDateTime,
 }
-
+impl UserInfo {
+    pub fn git_login(nick_name: String, avatar_url: String) -> Self {
+        Self {
+            user_id: nanoid::nano_id(),
+            nick_name,
+            avatar_url,
+            account: "".to_string(),
+            password: "".to_string(),
+            solt: "".to_string(),
+            email: "".to_string(),
+            description: "".to_string(),
+            create_time: time::get_local_time(),
+            update_time: time::get_local_time(),
+        }
+    }
+}
+#[derive(Serialize, Deserialize, Default, Debug, sqlx::FromRow)]
 pub struct TagInfo {
-    pub tag_id: i32,
-    pub name: String,
+    pub tag_id: String,
+    pub tag_name: String,
 }
 
 pub struct OhterLoginInfo {
