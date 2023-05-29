@@ -1,7 +1,7 @@
 use super::db_entity::{SnippetInfo, TagInfo, UserInfo};
 use crate::utils::time;
-use sqlx::{postgres::PgConnection, PgPool, Postgres};
 use anyhow::Result;
+use sqlx::{postgres::PgConnection, PgPool, Postgres};
 
 async fn create_connection_pool() -> PgConnection {
     // TODO 如果有数据库其他配置需要修改
@@ -106,4 +106,31 @@ pub async fn insert_user_info(user_info: UserInfo) -> String {
         true => info.user_id,
         false => "".to_string(),
     }
+}
+
+pub async fn insert_or_update_user(user_info: UserInfo) -> String {
+    let mut conn = create_connection_pool().await;
+    let nick = get_user_info(user_info.clone().nick_name).await;
+    if nick.nick_name.len() > 0 {
+        let time = time::get_local_time();
+        sqlx::query("update user_info set update_time = $1 where nick_name = $2")
+            .bind(time)
+            .bind(user_info.nick_name)
+            .execute(&mut conn)
+            .await
+            .unwrap();
+        user_info.user_id
+    } else {
+        insert_user_info(user_info).await
+    }
+}
+
+pub async fn get_user_info(nick_name: String) -> UserInfo {
+    let mut conn = create_connection_pool().await;
+    let res = sqlx::query_as::<Postgres, UserInfo>("select * from user_info where nick_name = $1")
+        .bind(nick_name)
+        .fetch_one(&mut conn)
+        .await
+        .unwrap();
+    res
 }

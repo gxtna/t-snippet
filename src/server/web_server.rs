@@ -15,7 +15,6 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use tower_http::cors::CorsLayer;
-use anyhow::Result;
 use crate::utils::nanoid;
 
 pub async fn web_server_route() {
@@ -61,7 +60,6 @@ async fn github_login(Query(map): Query<HashMap<String, String>>) -> Json<GitHub
             e.to_string()
         }
     };
-    println!("{}", res);
     let access: GithubAccessToken = match serde_json::from_str(&res) {
         Ok(res) => res,
         Err(_) => todo!(),
@@ -89,13 +87,12 @@ async fn github_login(Query(map): Query<HashMap<String, String>>) -> Json<GitHub
             e.to_string()
         }
     };
-    println!("{}",user);
     let user_info: GitHubUserInfo = match serde_json::from_str(&user) {
         Ok(text) => text,
         Err(_) => todo!(),
     };
     let info = UserInfo::git_login(user_info.clone().login, user_info.clone().avatar_url);
-    let x = db_server::insert_user_info(info).await;
+    let x = db_server::insert_or_update_user(info).await;
     let res = GitHubUserInfo{
         login: user_info.login,
         avatar_url: user_info.avatar_url,

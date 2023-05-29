@@ -24,4 +24,7 @@ chrono = { version = "0.4.23", features = ["serde"] }
 reqwest = "0.11.13"
 nanoid = "0.4.0"
 anyhow = "1.0.66"
-redis = "0.22.1"
+redis = "0.23.0"
+sonic-server = "1.4.0"
+rs-es = "0.12.3"
+url="2.3.1"
