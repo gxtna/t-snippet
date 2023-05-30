@@ -8,5 +8,6 @@ mod utils;
 #[tokio::main]
 async fn main() {
     //server::web_server::web_server_route().await;
-    db::es_server::es_client().await;
+   db::es_server::search("java".to_string()).await;
+    
 }
