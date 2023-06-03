@@ -1,4 +1,7 @@
-use super::db_entity::{SnippetInfo, TagInfo, UserInfo};
+use super::{
+    db_entity::{SnippetInfo, TagInfo, UserInfo},
+    es_server,
+};
 use crate::utils::time;
 use anyhow::Result;
 use sqlx::{postgres::PgConnection, PgPool, Postgres};
@@ -14,6 +17,7 @@ async fn create_connection_pool() -> PgConnection {
 pub async fn inset_snippet(snippet_info: SnippetInfo) -> Result<bool> {
     let time = time::get_local_time();
     let mut conn = create_connection_pool().await;
+    let info = snippet_info.clone();
     let res = sqlx::query(
         "insert into snippet_info (snippet_id,user_id,title,tags,description,content,create_time,update_time) values($1,$2,$3,$4,$5,$6,$7,$8)",
     )
@@ -27,6 +31,7 @@ pub async fn inset_snippet(snippet_info: SnippetInfo) -> Result<bool> {
     .bind(time)
     .execute(&mut conn)
     .await?;
+    es_server::post_data("snippet", info).await;
     Ok(res.rows_affected() == 1)
 }
 
@@ -39,7 +44,7 @@ pub async fn select_snippet_list() -> Vec<SnippetInfo> {
     res
 }
 
-pub async fn get_sinppet(snippet_id: String) -> SnippetInfo {
+pub async fn get_snippet(snippet_id: String) -> SnippetInfo {
     let mut conn = create_connection_pool().await;
     let res =
         sqlx::query_as::<Postgres, SnippetInfo>("select * from snippet_info where snippet_id = $1")
@@ -50,7 +55,7 @@ pub async fn get_sinppet(snippet_id: String) -> SnippetInfo {
     res
 }
 
-pub async fn update_sinppet(snippet_info: SnippetInfo) -> bool {
+pub async fn update_snippet(snippet_info: SnippetInfo) -> bool {
     let time = time::get_local_time();
     let mut conn = create_connection_pool().await;
     let res = sqlx::query(
@@ -90,14 +95,14 @@ pub async fn insert_user_info(user_info: UserInfo) -> String {
     let mut conn = create_connection_pool().await;
     let time = time::get_local_time();
     let info = user_info.clone();
-    let res = sqlx::query("insert into user_info (user_id, nick_name, avatar_url ,password, solt, email, account, description, create_time, update_time) 
+    let res = sqlx::query("insert into user_info (user_id, nick_name, avatar_url ,password, salt, email, account, description, create_time, update_time) 
     values ($1, $2, $3, $4, $5, $6,$7, $8, $9, $10)")
     .bind(user_info.user_id)
     .bind(user_info.nick_name)
     .bind(user_info.avatar_url)
     .bind(user_info.account)
     .bind(user_info.password)
-    .bind(user_info.solt)
+    .bind(user_info.salt)
     .bind(user_info.email)
     .bind(user_info.description)
     .bind(time).bind(time)

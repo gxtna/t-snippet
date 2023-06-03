@@ -2,7 +2,7 @@ use crate::utils::{nanoid, time};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Default, Debug, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Default, Debug, sqlx::FromRow,Clone)]
 pub struct SnippetInfo {
     pub snippet_id: String,
     pub user_id: String,
@@ -10,7 +10,9 @@ pub struct SnippetInfo {
     pub tags: String,
     pub description: String,
     pub content: String,
+    #[serde(skip)]
     pub create_time: NaiveDateTime,
+    #[serde(skip)]
     pub update_time: NaiveDateTime,
 }
 
@@ -47,7 +49,7 @@ pub struct UserInfo {
     pub avatar_url: String,
     pub account: String,
     pub password: String,
-    pub solt: String,
+    pub salt: String,
     pub email: String,
     pub description: String,
     pub create_time: NaiveDateTime,
@@ -61,7 +63,7 @@ impl UserInfo {
             avatar_url,
             account: "".to_string(),
             password: "".to_string(),
-            solt: "".to_string(),
+            salt: "".to_string(),
             email: "".to_string(),
             description: "".to_string(),
             create_time: time::get_local_time(),
@@ -75,7 +77,7 @@ pub struct TagInfo {
     pub tag_name: String,
 }
 
-pub struct OhterLoginInfo {
+pub struct OtherLoginInfo {
     pub user_id: String,
     pub login_type: String,
 }
