@@ -1,21 +1,10 @@
-use std::collections::HashMap;
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use crate::db::es_entity::{DescBody, MatchBody};
 use super::{
     db_entity::SnippetInfo,
-    es_entity::{CreateIndexResponse, HitsArray, PostDataResponse, SearchRequest, SearchResponse},
+    es_entity::{HitsArray, PostDataResponse, SearchResponse},
 };
+use reqwest::Client;
 
-pub async fn es_client() {
-    let res = Client::new()
-        .post("http://127.0.0.1:9200/test/_doc/01")
-        .send()
-        .await
-        .unwrap();
-    let x = res.text().await.unwrap();
-}
-pub async fn create_index(index: &str) -> bool {
+async fn create_index(index: &str) {
     let mut url = String::new();
     url.push_str("http://127.0.0.1:9200/");
     url.push_str(index);
@@ -27,11 +16,17 @@ pub async fn create_index(index: &str) -> bool {
         .text()
         .await
         .unwrap();
-    let res: CreateIndexResponse = serde_json::from_str(&res).unwrap();
-    res.index == index
+    match serde_json::from_str(&res) {
+        Ok(data) => data,
+        Err(err) => {
+            println!("{:?}", err.to_string());
+            return;
+        }
+    };
 }
 
 pub async fn post_data(index: &str, snippet_info: SnippetInfo) -> bool {
+    create_index(index).await;
     let mut url = String::new();
     url.push_str("http://127.0.0.1:9200/");
     url.push_str(index);

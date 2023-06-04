@@ -76,8 +76,3 @@ pub struct TagInfo {
     pub tag_id: String,
     pub tag_name: String,
 }
-
-pub struct OtherLoginInfo {
-    pub user_id: String,
-    pub login_type: String,
-}

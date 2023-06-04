@@ -1,6 +1,4 @@
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-
 use super::db_entity::SnippetInfo;
 
 #[derive(Debug, Deserialize, Serialize)]

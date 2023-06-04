@@ -1,0 +1,19 @@
+#postgresql:
+# url: postgres://root:123456@localhost:5432/database
+database:
+  db_type: postgres
+  url: localhost
+  port: 5432
+  database: database
+  username: root
+  password: 123456
+
+elasticsearch:
+  url: http://127.0.0.1:9200
+  index: snippet
+
+github:
+  client_id: github
+  client_secret: github
+  access_token_url: https://github.com/login/oauth/access_token
+  user_info_url: https://api.github.com/user

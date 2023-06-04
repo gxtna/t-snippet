@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::db::{
     db_entity::{SnippetInfo, TagInfo, UserInfo},
     db_server, es_server,
-    other_login_entity::{self, GitHubUserInfo, GithubAccessToken, WebSnippetInfo}
+    other_login_entity::{GitHubUserInfo, GithubAccessToken, WebSnippetInfo},
 };
 use crate::utils::nanoid;
 use axum::{
@@ -14,7 +14,6 @@ use axum::{
     Router, Server,
 };
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
 use serde_json;
 use tower_http::cors::CorsLayer;
 
@@ -25,6 +24,7 @@ pub async fn web_server_route() {
         .route("/", get(index))
         .route("/github_login", get(github_login))
         .route("/get_snippet", get(get_snippet))
+        .route("/delete_snippet", get(delete_snippet))
         .route("/get_all_snippets", get(get_all_snippets))
         .route("/write_snippet", post(write_snippet))
         .route("/get_all_tags", get(get_all_tags))
@@ -94,7 +94,7 @@ async fn github_login(Query(map): Query<HashMap<String, String>>) -> Json<GitHub
         Err(_) => todo!(),
     };
     let info = UserInfo::git_login(user_info.clone().login, user_info.clone().avatar_url);
-    let x = db_server::insert_or_update_user(info).await;
+    let x = db_server::insert_or_update_user(info).await.unwrap();
     let res = GitHubUserInfo {
         login: user_info.login,
         avatar_url: user_info.avatar_url,
@@ -118,7 +118,7 @@ async fn write_snippet(Json(snippet_info): Json<WebSnippetInfo>) -> Json<bool> {
     match temp.len() > 0 {
         true => {
             snippet_info.snippet_id = temp;
-            let res = db_server::update_snippet(snippet_info).await;
+            let res = db_server::update_snippet(snippet_info).await.unwrap();
             Json(res)
         }
         false => {
@@ -130,27 +130,34 @@ async fn write_snippet(Json(snippet_info): Json<WebSnippetInfo>) -> Json<bool> {
 }
 
 async fn get_snippet(Query(snippet_id): Query<HashMap<String, String>>) -> Json<SnippetInfo> {
-    let info = db_server::get_snippet(snippet_id.get("snippet_id").unwrap().to_string()).await;
+    let info = db_server::get_snippet(snippet_id.get("snippet_id").unwrap().to_string())
+        .await
+        .unwrap();
     Json(info)
 }
 
+async fn delete_snippet(Query(snippet_id): Query<HashMap<String, String>>) -> Json<bool> {
+    let res = db_server::delete_snippet(snippet_id.get("snippet_id").unwrap().to_string())
+        .await
+        .unwrap();
+    Json(res)
+}
+
 async fn get_all_snippets() -> Json<Vec<SnippetInfo>> {
-    let list = db_server::select_snippet_list().await;
+    let list = db_server::select_snippet_list().await.unwrap();
     Json(list)
 }
 
 async fn get_all_tags() -> Json<Vec<TagInfo>> {
-    let tags = db_server::get_all_tags().await;
+    let tags = db_server::get_all_tags().await.unwrap();
     Json(tags)
 }
 
 async fn search_data(Query(desc): Query<HashMap<String, String>>) -> Json<Vec<SnippetInfo>> {
-    let array = es_server::search_data("snippet",desc.get("desc").unwrap().to_string()).await;
+    let array = es_server::search_data("snippet", desc.get("desc").unwrap().to_string()).await;
     let mut res_array = Vec::new();
     for item in array {
         res_array.push(item.source)
     }
     Json(res_array)
 }
-
-
