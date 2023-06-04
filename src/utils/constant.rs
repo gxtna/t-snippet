@@ -1,4 +1,4 @@
-use super::application_config::{ApplicationConfig, DatabaseConfig};
+use super::application_config::ApplicationConfig;
 use anyhow::{Ok, Result};
 use lazy_static::lazy_static;
 use std::fs::File;
@@ -6,7 +6,7 @@ use std::io::prelude::*;
 
 lazy_static! {
     static ref CONFIG: String = read_config().unwrap();
-    pub static ref DATABASECONFIG: DatabaseConfig = load_database_config().unwrap();
+    pub static ref APPCONFIG: ApplicationConfig = load_config().unwrap();
 }
 
 fn read_config() -> Result<String> {
@@ -17,7 +17,7 @@ fn read_config() -> Result<String> {
     Ok(str_val)
 }
 
-pub fn load_database_config() -> Result<DatabaseConfig> {
+pub fn load_config() -> Result<ApplicationConfig> {
     let config: ApplicationConfig = serde_yaml::from_str(&CONFIG.to_owned()).unwrap();
-    Ok(config.database)
+    Ok(config)
 }

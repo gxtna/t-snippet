@@ -114,7 +114,8 @@ async fn write_snippet(Json(snippet_info): Json<WebSnippetInfo>) -> Json<bool> {
         snippet_info.desc,
         snippet_info.content,
     );
-
+    let tags: Vec<String> = serde_json::from_str(&snippet_info.tags).unwrap();
+    db_server::insert_tag_info(tags).await.unwrap();
     match temp.len() > 0 {
         true => {
             snippet_info.snippet_id = temp;
@@ -137,10 +138,11 @@ async fn get_snippet(Query(snippet_id): Query<HashMap<String, String>>) -> Json<
 }
 
 async fn delete_snippet(Query(snippet_id): Query<HashMap<String, String>>) -> Json<bool> {
-    let res = db_server::delete_snippet(snippet_id.get("snippet_id").unwrap().to_string())
-        .await
-        .unwrap();
-    Json(res)
+    let snippet_id = snippet_id.get("snippet_id").unwrap().to_string();
+    let copy = snippet_id.clone();
+    let res = db_server::delete_snippet(snippet_id).await.unwrap();
+    let esr = es_server::delete_data(copy).await;
+    Json(res && esr)
 }
 
 async fn get_all_snippets() -> Json<Vec<SnippetInfo>> {
@@ -154,7 +156,7 @@ async fn get_all_tags() -> Json<Vec<TagInfo>> {
 }
 
 async fn search_data(Query(desc): Query<HashMap<String, String>>) -> Json<Vec<SnippetInfo>> {
-    let array = es_server::search_data("snippet", desc.get("desc").unwrap().to_string()).await;
+    let array = es_server::search_data(desc.get("desc").unwrap().to_string()).await;
     let mut res_array = Vec::new();
     for item in array {
         res_array.push(item.source)

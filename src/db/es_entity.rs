@@ -83,3 +83,13 @@ pub struct MatchBody {
 pub struct DescBody {
     pub description: String,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DeleteResponse {
+    pub took:i32,
+    pub timed_out:bool,
+    pub total:i32,
+    pub deleted:i32,
+    pub batches:i32,
+    pub version_conflicts:i32
+}

@@ -73,6 +73,6 @@ impl UserInfo {
 }
 #[derive(Serialize, Deserialize, Default, Debug, sqlx::FromRow)]
 pub struct TagInfo {
-    pub tag_id: String,
+    pub tag_id: i32,
     pub tag_name: String,
 }

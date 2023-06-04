@@ -2,12 +2,12 @@ use super::{
     db_entity::{SnippetInfo, TagInfo, UserInfo},
     es_server,
 };
-use crate::utils::{constant::DATABASECONFIG, time};
+use crate::utils::{constant::APPCONFIG, time};
 use anyhow::{Ok, Result};
 use sqlx::{postgres::PgConnection, PgPool, Postgres};
 
 async fn create_connection_pool() -> Result<PgConnection> {
-    let conf = &DATABASECONFIG;
+    let conf = &APPCONFIG.database;
     let url = format!(
         "{}://{}:{}@{}:{}/{}",
         conf.db_type, conf.username, conf.password, conf.url, conf.port, conf.database
@@ -34,7 +34,7 @@ pub async fn inset_snippet(snippet_info: SnippetInfo) -> Result<bool> {
     .bind(time)
     .execute(&mut conn)
     .await?;
-    es_server::post_data("snippet", info).await;
+    es_server::post_data(info).await;
     Ok(res.rows_affected() == 1)
 }
 
@@ -84,10 +84,26 @@ pub async fn delete_snippet(snippet_id: String) -> Result<bool> {
 
 pub async fn get_all_tags() -> Result<Vec<TagInfo>> {
     let mut conn = create_connection_pool().await?;
-    let res = sqlx::query_as::<Postgres, TagInfo>("select * from tag_info")
+    let res = sqlx::query_as::<Postgres, TagInfo>("select * from tag_info order by tag_id desc")
         .fetch_all(&mut conn)
         .await?;
     Ok(res)
+}
+
+pub async fn insert_tag_info(tags: Vec<String>) -> Result<()> {
+    let mut conn = create_connection_pool().await?;
+    let mut temp = get_all_tags().await?.get(0).unwrap().tag_id;
+    for tag in tags {
+        temp = temp + 1;
+        sqlx::query(
+            "insert into tag_info(tag_id,tag_name)values ($1,$2) on conflict (tag_name) do nothing",
+        )
+        .bind(temp)
+        .bind(tag)
+        .execute(&mut conn)
+        .await?;
+    }
+    Ok(())
 }
 
 pub async fn insert_user_info(user_info: UserInfo) -> Result<String> {

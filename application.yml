@@ -9,7 +9,7 @@ database:
   password: 123456
 
 elasticsearch:
-  url: http://127.0.0.1:9200
+  url: http://127.0.0.1:9200/
   index: snippet
 
 github:
