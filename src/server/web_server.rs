@@ -1,11 +1,14 @@
 use std::collections::HashMap;
 
-use crate::db::{
-    db_entity::{SnippetInfo, TagInfo, UserInfo},
-    db_server, es_server,
-    other_login_entity::{GitHubUserInfo, GithubAccessToken, WebSnippetInfo},
-};
 use crate::utils::nanoid;
+use crate::{
+    db::{
+        db_entity::{SnippetInfo, TagInfo, UserInfo},
+        db_server, es_server,
+        other_login_entity::{GitHubUserInfo, GithubAccessToken, WebSnippetInfo},
+    },
+    utils::constant::APPCONFIG,
+};
 use axum::{
     self,
     extract::Json,
@@ -40,10 +43,15 @@ async fn index() -> String {
     return "http://127.0.0.1:8080".to_string();
 }
 async fn github_login(Query(map): Query<HashMap<String, String>>) -> Json<GitHubUserInfo> {
+    let conf = &APPCONFIG.github;
     let code = map.get("code").unwrap().to_string();
-    let mut url = String::new();
+    let url = format!(
+        "{}?client_id={}&client_secret={}&code={}",
+        conf.access_token_url, conf.client_id, conf.client_secret, code
+    );
+    /* let mut url = String::new();
     url.push_str("https://github.com/login/oauth/access_token?client_id=cfc1410aa53dc97243dd&client_secret=54d59c9d64d3c672dde8bd9a2f410544c6063d70&code=");
-    url.push_str(&code);
+    url.push_str(&code); */
     let client = Client::new()
         .get(url)
         .header("Accept", "application/json")
@@ -70,7 +78,7 @@ async fn github_login(Query(map): Query<HashMap<String, String>>) -> Json<GitHub
     token.push_str("Bearer ");
     token.push_str(&access.access_token);
     let user = match Client::new()
-        .get("https://api.github.com/user")
+        .get(conf.user_info_url)
         .header("accept", "application/vnd.github+json")
         .header("user-agent", "t-snippet")
         .header("Authorization", token)
